@@ -14,7 +14,10 @@ class TestOrderCreate:
 
         payload = {"ingredients": ids}
         headers = {"Authorization": user_token}
-        response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
+        with allure.step("Отправка запроса с авторизацией и ингредиентами"):
+            response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
         assert response.status_code == 200
         assert response.json().get("success") == True
         assert "order" in response.json()
@@ -26,8 +29,10 @@ class TestOrderCreate:
         ids = [ing["_id"] for ing in ingredients[:1]]
 
         payload = {"ingredients": ids}
-        response = requests.post(Config.ORDERS_URL, data=payload)
-        # Сервер разрешает создавать заказы без авторизации на этом стенде
+
+        with allure.step("Отправка запроса без авторизации"):
+            response = requests.post(Config.ORDERS_URL, data=payload)
+
         assert response.status_code == 200
         assert response.json().get("success") == True
         assert "order" in response.json()
@@ -36,7 +41,10 @@ class TestOrderCreate:
     def test_create_order_without_ingredients(self, user_token):
         payload = {"ingredients": []}
         headers = {"Authorization": user_token}
-        response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
+        with allure.step("Отправка запроса без ингредиентов"):
+            response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
         assert response.status_code == 400
         assert "Ingredient ids must be provided" in response.json().get("message", "")
 
@@ -44,5 +52,9 @@ class TestOrderCreate:
     def test_create_order_with_wrong_hash(self, user_token):
         payload = {"ingredients": ["invalidhash123"]}
         headers = {"Authorization": user_token}
-        response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
+        with allure.step("Отправка запроса с неверным хешем"):
+            response = requests.post(Config.ORDERS_URL, data=payload, headers=headers)
+
         assert response.status_code == 500
+        
